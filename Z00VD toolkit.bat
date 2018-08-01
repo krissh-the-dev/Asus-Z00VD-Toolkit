@@ -539,7 +539,7 @@ echo  *                ASUS Z00VD ADB TOOLKIT                *
 echo  *                  by Krishna Moorthy                  *
 echo  *          https://12androidzone.blogspot.com          *
 echo  ********************************************************
-echo  *                                             Ver. 1.4 *
+echo  *                                             Ver. 1.5 *
 echo  ********************************************************
 echo.
 echo ### Please read readme.txt before using the tool.
