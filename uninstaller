@@ -1,0 +1,97 @@
+#!/system/bin/sh
+
+/system/bin/resize2fs
+
+MOUNT="/system/bin/busybox mount"
+CHMOD="/system/bin/busybox chmod"
+CHOWN="/system/bin/busybox chown"
+MKDIR="/system/bin/busybox mkdir"
+RMDIR="/system/bin/busybox rmdir"
+CP="/system/bin/busybox cp"
+RM="/system/bin/busybox rm"
+MV="/system/bin/busybox mv"
+TAR="/system/bin/busybox tar"
+CAT="/system/bin/busybox cat"
+LN="/system/bin/busybox ln"
+
+DATA_PARTITION=/dev/block/mmcblk0p10
+SYSTEM_PARTITION=/dev/block/mmcblk0p9
+
+if [ -L /dev/block/platform/intel/by-label/data ]; then
+  DATA_PARTITION=/dev/block/platform/intel/by-label/data
+fi
+if [ -L /dev/block/by-name/data ]; then
+  DATA_PARTITION=/dev/block/by-name/data
+fi
+
+if [ -L /dev/block/platform/intel/by-label/system ]; then
+  SYSTEM_PARTITION=/dev/block/platform/intel/by-label/system
+fi
+if [ -L /dev/block/by-name/system ]; then
+  SYSTEM_PARTITION=/dev/block/by-name/system
+fi
+
+DATA=/mnt/data
+SYSTEM=/mnt/system
+
+# "- Mounting /system, /data and rootfs"
+$MOUNT -o rw,remount /
+
+$MKDIR $DATA
+$MKDIR $SYSTEM
+
+$MOUNT -o rw -t ext4 $DATA_PARTITION $DATA
+$MOUNT -o rw -t ext4 $SYSTEM_PARTITION $SYSTEM
+
+# "- Removing old files"
+$RM -f $SYSTEM/xbin/su
+$RM -f $SYSTEM/xbin/.tmpsu
+$RM -f $SYSTEM/xbin/daemonsu
+$RM -f $SYSTEM/xbin/daemonsu_old
+$RM -f $SYSTEM/xbin/sugote
+$RM -f $SYSTEM/xbin/sugote-mksh
+$RM -f $SYSTEM/xbin/supolicy
+$RM -f $SYSTEM/lib/libsupol.so
+$RM -f $SYSTEM/lib64/libsupol.so
+$RM -f $SYSTEM/bin/.ext/.su
+$RMDIR $SYSTEM/bin/.ext
+$RM -f $SYSTEM/app/SuperSU/SuperSU.apk
+$RMDIR $SYSTEM/app/SuperSU
+$RM -f $SYSTEM/app/Superuser.apk
+$RM -f $SYSTEM/etc/install-recovery.sh
+$RM -f $SYSTEM/bin/install-recovery.sh
+$MV $SYSTEM/bin/install-recovery-2.sh $SYSTEM/bin/install-recovery.sh
+$RM -f $SYSTEM/etc/.installed_su_daemon
+
+$RM $SYSTEM/bin/app_process
+$RM $SYSTEM/bin/app_process_init
+
+if [ -f $SYSTEM/bin/app_process64_original ]; then
+  $RM $SYSTEM/bin/app_process64
+  $MV $SYSTEM/bin/app_process64_original $SYSTEM/bin/app_process64
+fi
+if [ -f $SYSTEM/bin/app_process64 ]; then
+  $LN -s /system/bin/app_process64 $SYSTEM/bin/app_process
+fi
+
+if [ -f $SYSTEM/bin/app_process32_original ]; then
+  $RM $SYSTEM/bin/app_process32
+  $MV $SYSTEM/bin/app_process32_original $SYSTEM/bin/app_process32
+fi
+if [ -f $SYSTEM/bin/app_process32 ]; then
+  $LN -s /system/bin/app_process32 $SYSTEM/bin/app_process
+fi
+
+$RM -f $DATA/dalvik-cache/x86/*SuperSU.apk*
+$RM -f $DATA/dalvik-cache/x86/*eu.chainfire.supersu*
+$RM -f $DATA/dalvik-cache/x86/*.oat
+$RM -rf $DATA/app/eu.chainfire.supersu-*
+
+# "- remounting /system as read only"
+$MOUNT -o ro,remount $SYSTEM
+
+# "- Cleaning up"
+$RM /factory/last_fb_cmds.log
+
+# "- Done ! superSU installation complete"
+exit 1
